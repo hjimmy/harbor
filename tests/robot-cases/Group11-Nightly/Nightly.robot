@@ -16,6 +16,7 @@
 Documentation  Harbor BATs
 Resource  ../../resources/Util.robot
 Suite Setup  Nightly Test Setup  ${ip}  ${SSH_PWD}  ${HARBOR_PASSWORD}
+Suite Teardown  Collect Nightly Logs  ${ip}  ${SSH_PWD}
 Default Tags  Nightly
 
 *** Variables ***
@@ -142,7 +143,7 @@ Test Case - Manage project publicity
 Test Case - Project Level Policy Public
     Init Chrome Driver
     ${d}=  Get Current Date    result_format=%m%s
-    Sign In Harbor  ${HARBOR_URL}  %{HARBOR_ADMIN}  %{HARBOR_PASSWORD}
+    Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
     Create An New Project  project${d}
     Go Into Project  project${d}
     Goto Project Config
@@ -160,7 +161,7 @@ Test Case - Project Level Policy Content Trust
     ${d}=  Get Current Date    result_format=%m%s
     Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
     Create An New Project  project${d}
-    Push Image  ${ip}  %{HARBOR_ADMIN}  %{HARBOR_PASSWORD}  project${d}  hello-world:latest
+    Push Image  ${ip}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}  project${d}  hello-world:latest
     Go Into Project  project${d}
     Goto Project Config
     Click Content Trust
@@ -254,10 +255,11 @@ Test Case - Scan A Tag In The Repo
     ${d}=  get current date  result_format=%m%s
     Create An New Project With New User  url=${HARBOR_URL}  username=tester${d}  email=tester${d}@vmware.com  realname=tester${d}  newPassword=Test1@34  comment=harbor  projectname=project${d}  public=false
     Push Image  ${ip}  tester${d}  Test1@34  project${d}  hello-world
+    Go Into Project  project${d}
     Go Into Repo  project${d}/hello-world
     Scan Repo  latest
     Summary Chart Should Display  latest
-    Edit Repo Info
+    #Edit Repo Info
     Close Browser
 
 Test Case - Manage Project Member
@@ -272,7 +274,6 @@ Test Case - Manage Project Member
     Create An New User  url=${HARBOR_URL}  username=carol${d}  email=carol${d}@vmware.com  realname=carol${d}  newPassword=Test1@34  comment=harbor
     Logout Harbor
 
-    User Should Be Owner Of Project  alice${d}  Test1@34  project${d}
     User Should Not Be A Member Of Project  bob${d}  Test1@34  project${d}
     Manage Project Member  alice${d}  Test1@34  project${d}  bob${d}  Add
     User Should Be Guest  bob${d}  Test1@34  project${d}
@@ -312,17 +313,17 @@ Test Case - Assign Sys Admin
     Close Browser
 
 Test Case - Admin Push Signed Image
-    Enabe Notary Client
+    Enable Notary Client
 
     ${rc}  ${output}=  Run And Return Rc And Output  docker pull hello-world:latest
     Log  ${output}
 		
     Push image  ${ip}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}  library  hello-world:latest
-    ${rc}  ${output}=  Run And Return Rc And Output  ./tests/robot-cases/Group9-Content-trust/notary-push-image.sh
+    ${rc}  ${output}=  Run And Return Rc And Output  ./tests/robot-cases/Group9-Content-trust/notary-push-image.sh ${ip}
     Log  ${output}
     Should Be Equal As Integers  ${rc}  0
 
     ${rc}  ${output}=  Run And Return Rc And Output  curl -u admin:Harbor12345 -s --insecure -H "Content-Type: application/json" -X GET "https://${ip}/api/repositories/library/tomcat/signatures"
     Log To Console  ${output}
     Should Be Equal As Integers  ${rc}  0
-    #Should Contain  ${output}  sha256
+    Should Contain  ${output}  sha256

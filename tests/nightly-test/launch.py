@@ -10,14 +10,15 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path + '/utils')
 sys.path.append(dir_path + '/deployment')
 import harbor_util
+import buildweb_utils
 import nlogging
-logger = nlogging.create_logger()
+logger = nlogging.create_logger(__name__)
 import test_executor
 from deployer import *
 
 if len(sys.argv)!=7 :
-    print "python launch.py <build_type> <image_url> <test suitename> <config_file> <dry_run>"
-    print "Wrong parameters, quit test"
+    logger.info("python launch.py <build_type> <image_url> <test suitename> <config_file> <dry_run>")
+    logger.info("Wrong parameters, quit test")
     quit()
 
 build_type = sys.argv[1]
@@ -40,7 +41,10 @@ if build_type == "ova" :
     cluster = config.get("vcenter", "cluster")
     ova_password = config.get("vcenter", "ova_password")
     ova_name = config.get("vcenter", "ova_name")
-    ova_name = ova_name +"-"+ datetime.now().isoformat().replace(":", "-").replace(".", "-")
+
+    if image_url == "latest" :
+        image_url = buildweb_utils.get_latest_build_url('master','beta')
+    logger.info("Get latest image url:" + image_url)
 
     logger.info("Going to deploy harbor ova..")
     ova_deployer = OVADeployer(vc_host, 

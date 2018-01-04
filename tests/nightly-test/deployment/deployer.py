@@ -9,7 +9,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path + '../utils')
 import govc_utils
 import nlogging
-logger = nlogging.create_logger()
+logger = nlogging.create_logger(__name__)
 
 class Deployer(object):
     __metaclass__ = abc.ABCMeta
@@ -50,7 +50,6 @@ class OVADeployer(Deployer):
             ova_name_temp = self.ova_name +"-"+ datetime.now().isoformat().replace(":", "-").replace(".", "-")
             time.sleep(1)
             self.ova_names.append(ova_name_temp)
-        logger.info(self.ova_names)
     
     def __set_ovf_tool(self):
         if not self.ova_endpoints:

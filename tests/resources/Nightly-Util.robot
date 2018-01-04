@@ -34,3 +34,20 @@ CA Setup
     Close All Connections
     Run  mv ca.crt harbor_ca.crt
     Generate Certificate Authority For Chrome  ${HARBOR_PASSWORD}	
+
+Collect Nightly Logs
+    [Arguments]  ${ip}  ${SSH_PWD}
+    Open Connection    ${ip}
+    Login    ${SSH_USER}    ${SSH_PWD}
+    SSHLibrary.Get File  /var/log/harbor/ui.log
+    SSHLibrary.Get File  /var/log/harbor/registry.log
+    SSHLibrary.Get File  /var/log/harbor/proxy.log
+    SSHLibrary.Get File  /var/log/harbor/adminserver.log  
+    SSHLibrary.Get File  /var/log/harbor/clair-db.log  
+    SSHLibrary.Get File  /var/log/harbor/clair.log  
+    SSHLibrary.Get File  /var/log/harbor/jobservice.log  
+    SSHLibrary.Get File  /var/log/harbor/mysql.log
+    SSHLibrary.Get File  /var/log/harbor/notary-db.log
+    SSHLibrary.Get File  /var/log/harbor/notary-server.log
+    SSHLibrary.Get File  /var/log/harbor/notary-signer.log
+    Close All Connections
